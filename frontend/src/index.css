@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* The new Tailwind V4 import */
+@import "tailwindcss";
+
+/* You can add your custom body styles below */
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+@theme {
+  /* Flipkart blue — used as bg-primary-600, text-primary-600 */
+  --color-primary-600: #2874f0;
+  --color-primary-700: #1a65d6; /* hover state */
+
+  /* Flipkart yellow — used as text-secondary, bg-secondary */
+  --color-secondary: #ffe500;
+
+  /* Green for ratings and discounts — used as bg-success, text-success */
+  --color-success: #388e3c;
+
+  /* Orange for CTA buttons and cart badge */
+  --color-cta: #fb641b;
+}
+
+/* Utility classes */
+.sticky-summary { @apply sticky top-4; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
