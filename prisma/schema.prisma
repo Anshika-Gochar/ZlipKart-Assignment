@@ -1,0 +1,365 @@
+// ============================================================
+//  schema.prisma — Flipkart Clone
+//  Stack  : PostgreSQL · Prisma ORM · TypeScript
+//  Pattern: Normalized relational schema, ecommerce-grade
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+/// Roles for future admin/seller panel support
+enum Role {
+  USER
+  ADMIN
+}
+
+/// Tracks lifecycle of an order through fulfillment pipeline
+enum OrderStatus {
+  PENDING      // Order placed, awaiting confirmation
+  CONFIRMED    // Seller confirmed the order
+  PROCESSING   // Being packed / prepared
+  SHIPPED      // Handed to logistics partner
+  OUT_FOR_DELIVERY // Last-mile delivery in progress
+  DELIVERED    // Successfully delivered to customer
+  CANCELLED    // Cancelled before shipment
+  RETURNED     // Post-delivery return initiated
+  REFUNDED     // Money returned to customer
+}
+
+/// Tracks payment lifecycle independently of order status
+enum PaymentStatus {
+  UNPAID      // Order placed; payment pending (COD or failed attempt)
+  PAID        // Payment successfully captured
+  FAILED      // Payment attempt failed
+  REFUNDED    // Amount refunded back
+}
+
+/// Payment method recorded at order time
+enum PaymentMethod {
+  COD         // Cash on Delivery
+  UPI
+  CARD
+  NET_BANKING
+  WALLET
+}
+
+// ============================================================
+// MODEL: User
+// ============================================================
+// Central identity entity. Owns cart, orders, addresses,
+// and wishlist. Separated from Address so users can store
+// multiple shipping destinations.
+// ============================================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String                         // bcrypt hash, NEVER plain text
+  name         String
+  phone        String?                        // Optional at registration
+  role         Role     @default(USER)
+  isActive     Boolean  @default(true)        // Soft-disable accounts
+
+  // Relations
+  addresses    Address[]
+  cart         Cart?                          // One-to-one: every user has at most one active cart
+  orders       Order[]
+  wishlist     WishlistItem[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([email])                            // Fast login lookups
+  @@map("users")
+}
+
+// ============================================================
+// MODEL: Address
+// ============================================================
+// Stored separately from User so a user can maintain
+// multiple shipping addresses (home, office, etc.).
+// Orders snapshot the address details at the time of purchase
+// via a foreign key — the address record should never be
+// hard-deleted if referenced by an order.
+// ============================================================
+
+model Address {
+  id         String  @id @default(uuid())
+  userId     String
+  fullName   String
+  phone      String
+  street     String
+  city       String
+  state      String
+  pincode    String
+  landmark   String?                          // Optional field
+  isDefault  Boolean @default(false)         // One address flagged as default
+
+  // Relations
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders     Order[]                          // Orders that used this address
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])                           // List addresses by user fast
+  @@map("addresses")
+}
+
+// ============================================================
+// MODEL: Category
+// ============================================================
+// Supports unlimited depth hierarchy via self-referencing
+// parentId. Examples:
+//   Electronics (root)
+//     └── Mobiles (child)
+//           └── Smartphones (grandchild)
+//
+// Slug is URL-friendly identifier used in frontend routes
+// e.g. /category/smartphones
+// ============================================================
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  slug        String     @unique                // URL-safe identifier
+  description String?
+  imageUrl    String?
+
+  // Self-referencing for parent-child hierarchy
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+
+  // Relations
+  products    Product[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([slug])                              // Category page lookups by slug
+  @@index([parentId])                          // Fetch children of a parent fast
+  @@map("categories")
+}
+
+// ============================================================
+// MODEL: Product
+// ============================================================
+// Core catalog entity. Contains all display data including
+// multiple image URLs stored as a PostgreSQL text array.
+//
+// discountPrice: the actual selling price (may equal price)
+// price: the MRP / strike-through price shown to user
+//
+// Indexed on: name (search), categoryId (filtering),
+// slug (detail page routing), price range queries.
+// ============================================================
+
+model Product {
+  id             String   @id @default(uuid())
+  name           String
+  slug           String   @unique              // SEO-friendly URL slug
+  description    String
+  brand          String?
+
+  // Pricing
+  price          Decimal  @db.Decimal(10, 2)   // MRP (strike-through price)
+  discountPrice  Decimal  @db.Decimal(10, 2)   // Actual selling price
+
+  // Inventory
+  stock          Int      @default(0)
+  isActive       Boolean  @default(true)       // Soft-delete / unpublish
+
+  // Media
+  imageUrls      String[]                      // PostgreSQL text[] — multiple images
+
+  // Ratings (denormalized for read performance)
+  rating         Decimal  @default(0) @db.Decimal(3, 2)  // Avg rating 0.00–5.00
+  reviewCount    Int      @default(0)
+
+  // Relations
+  categoryId     String
+  category       Category     @relation(fields: [categoryId], references: [id])
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  wishlistItems  WishlistItem[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // ── Indexes ────────────────────────────────────────────────
+  // name: full-text product search
+  // categoryId: category filtering (most common query)
+  // discountPrice: price range filtering & sorting
+  // isActive: always filter active products — partial index candidate
+  @@index([name])
+  @@index([categoryId])
+  @@index([discountPrice])
+  @@index([slug])
+  @@index([isActive])
+  @@map("products")
+}
+
+// ============================================================
+// MODEL: Cart
+// ============================================================
+// One cart per user (enforced by @unique on userId).
+// Cart is a TRANSIENT concept — it lives until the user
+// places an order, at which point it is cleared.
+//
+// WHY separate from Order?
+//   - Cart is mutable (items added/removed freely)
+//   - Order is immutable (finalized, auditable record)
+//   - Cart has no price snapshot; Order does
+//   - A user can have one cart but many orders
+// ============================================================
+
+model Cart {
+  id     String     @id @default(uuid())
+  userId String     @unique                   // Enforces one-cart-per-user at DB level
+
+  // Relations
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items  CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("carts")
+}
+
+// ============================================================
+// MODEL: CartItem
+// ============================================================
+// Junction table between Cart and Product.
+// Unique constraint on (cartId, productId) prevents the same
+// product being added as two separate rows — instead, the
+// service layer increments `quantity`.
+// ============================================================
+
+model CartItem {
+  id        String  @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int     @default(1)
+
+  // Relations
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Prevents duplicate product rows in the same cart
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+// ============================================================
+// MODEL: Order
+// ============================================================
+// Immutable record created when a cart is checked out.
+// References the shipping address by FK (not a copy) for
+// traceability, but the address record must not be deleted
+// if it has associated orders.
+//
+// Order status and payment status are decoupled enums because
+// they evolve on independent timelines:
+//   - Order: CONFIRMED → SHIPPED → DELIVERED
+//   - Payment: UNPAID → PAID (can happen asynchronously)
+// ============================================================
+
+model Order {
+  id            String        @id @default(uuid())
+  userId        String
+  addressId     String
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
+  paymentMethod PaymentMethod @default(COD)
+  totalAmount   Decimal       @db.Decimal(10, 2)  // Calculated at checkout time
+  notes         String?                            // Optional delivery instructions
+
+  // Relations
+  user          User          @relation(fields: [userId], references: [id])
+  address       Address       @relation(fields: [addressId], references: [id])
+  items         OrderItem[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])                               // Order history by user
+  @@index([status])                               // Admin panel: filter by status
+  @@index([createdAt])                            // Recent orders sorting
+  @@map("orders")
+}
+
+// ============================================================
+// MODEL: OrderItem
+// ============================================================
+// WHY does OrderItem exist separately from Order?
+//   - One order contains multiple products (line items)
+//   - Storing as an array in Order violates 1NF
+//   - Each item needs its own quantity and price record
+//
+// WHY priceAtPurchase?
+//   - Product prices change after purchase (sales, inflation)
+//   - Without this snapshot, order history shows wrong totals
+//   - Invoice generation and return/refund calculations depend on it
+//   - This is a snapshot, NOT a FK to the price — it's a VALUE
+// ============================================================
+
+model OrderItem {
+  id              String  @id @default(uuid())
+  orderId         String
+  productId       String
+  quantity        Int
+  priceAtPurchase Decimal @db.Decimal(10, 2)  // ← SNAPSHOT: price when ordered
+
+  // Relations
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product @relation(fields: [productId], references: [id])
+  // NOTE: No cascade on product — we want the record even if product is deleted
+
+  @@index([orderId])
+  @@index([productId])                           // "How many times was this product ordered?"
+  @@map("order_items")
+}
+
+// ============================================================
+// MODEL: WishlistItem
+// ============================================================
+// A lightweight junction between User and Product.
+// Unique constraint on (userId, productId) prevents
+// duplicate wishlist entries at the database level.
+//
+// No separate Wishlist table needed — the items themselves
+// are owned by the user directly, keeping it simple.
+// ============================================================
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  addedAt   DateTime @default(now())
+
+  // Prevents the same product appearing twice in a wishlist
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("wishlist_items")
+}
