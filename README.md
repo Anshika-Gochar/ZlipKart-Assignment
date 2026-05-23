@@ -630,6 +630,10 @@ All endpoints are prefixed with `/api/v1`.
 ![Order Placed](docs/screenshots/OrderPlaced.png)
 ![Order History](docs/screenshots/OrderHistory.png)
 
+### Email Confirmation
+![Order Confirmation Email 1](docs/screenshots/OrderConfirmationEmail1.png)
+![Order Confirmation Email 2](docs/screenshots/OrderConfirmationEmail2.png)
+
 ### Wishlist
 ![Wishlist](docs/screenshots/Wishlist.png)
 
