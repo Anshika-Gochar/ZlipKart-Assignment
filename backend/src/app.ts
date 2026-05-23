@@ -46,9 +46,23 @@ export const createApp = (): Application => {
 
   // ── 2. CORS ─────────────────────────────────────────────────
   // Must come before routes so preflight OPTIONS requests are handled
+  // CORS_ORIGIN supports comma-separated list of origins e.g.:
+  //   https://zlip-kart-assignment.vercel.app,https://zlip-kart-assignment-xxxx.vercel.app
+  const allowedOrigins = env.cors.origin
+    .split(",")
+    .map((o) => o.trim().replace(/\/$/, "")); // trim spaces & trailing slashes
+
   app.use(
     cors({
-      origin: env.cors.origin,
+      origin: (origin, callback) => {
+        // Allow requests with no origin (e.g. Render health checks, curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS: origin '${origin}' not allowed`));
+        }
+      },
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true, // Allow cookies / auth headers
