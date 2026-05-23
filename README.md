@@ -604,28 +604,47 @@ All endpoints are prefixed with `/api/v1`.
 
 ## 🖼️ Screenshots
 
-> Add screenshots to the `docs/screenshots/` folder and update the paths below.
-
 ### Homepage
 ![Homepage](docs/screenshots/homepage.png)
+![Homepage 2](docs/screenshots/homepage2.png)
 
 ### Product Listing Page
-![Product Listing](docs/screenshots/plp.png)
+![Product Listing 1](docs/screenshots/PLP1.png)
+![Product Listing 2](docs/screenshots/PLP2.png)
+
+### Search
+![Search](docs/screenshots/Search1.png)
 
 ### Product Detail Page
-![Product Detail](docs/screenshots/pdp.png)
+![Product Detail](docs/screenshots/PDP1.png)
+![Similar Products](docs/screenshots/PDP2-similar-products.png)
 
 ### Cart
-![Cart](docs/screenshots/cart.png)
+![Cart](docs/screenshots/Cart1.png)
+![Cart 2](docs/screenshots/Cart2.png)
 
 ### Checkout
-![Checkout](docs/screenshots/checkout.png)
+![Checkout](docs/screenshots/Checkout.png)
+
+### Order Placed & Order History
+![Order Placed](docs/screenshots/OrderPlaced.png)
+![Order History](docs/screenshots/OrderHistory.png)
+
+### Wishlist
+![Wishlist](docs/screenshots/Wishlist.png)
 
 ### AI Shopping Assistant
-![AI Assistant](docs/screenshots/ai-assistant.png)
+![AI Assistant](docs/screenshots/AI-assistant.png)
+![AI Assistant 2](docs/screenshots/Ai-assistant2.png)
 
 ### Seller Page
-![Seller Page](docs/screenshots/seller.png)
+![Seller 1](docs/screenshots/Seller1.png)
+![Seller 2](docs/screenshots/Seller2.png)
+![Seller 3](docs/screenshots/Seller3.png)
+
+### Auth & Profile
+![Login](docs/screenshots/Login.png)
+![User Profile](docs/screenshots/UserProfile.png)
 
 ---
 
