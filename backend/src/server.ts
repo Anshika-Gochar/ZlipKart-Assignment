@@ -37,7 +37,7 @@ const app = createApp();
 const server = app.listen(env.port, () => {
   console.log(`
 ╔═════════════════════════════════════════════╗
-║         Flipkart Clone API Server           ║
+║            ZlipKart API Server              ║
 ╠═════════════════════════════════════════════╣
 ║  Status    : Running ✓                      ║
 ║  Port      : ${env.port}                           ║

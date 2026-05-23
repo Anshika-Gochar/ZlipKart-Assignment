@@ -5,6 +5,7 @@ import { WishlistItemCard } from '../../components/shared/WishlistItemCard';
 import { AppDispatch, RootState } from '../../store';
 import { Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { Product } from '../../types/api.types';
 
 export default function Wishlist() {
   const dispatch = useDispatch<AppDispatch>();
@@ -73,7 +74,7 @@ export default function Wishlist() {
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map((item: import('../../types/api.types').Product) => (
+          {items.map((item: Product) => (
             <WishlistItemCard key={item.id} item={item} />
           ))}
         </div>

@@ -3,7 +3,7 @@
 export interface PaginationMeta {
   page: number;
   limit: number;
-  totalItems: number;
+  total: number;       // total matching products (backend field name)
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;

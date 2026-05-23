@@ -101,7 +101,7 @@ export default function Login() {
             </div>
 
             <p className="text-xs text-gray-500 leading-relaxed">
-              By continuing, you agree to Flipkart's{' '}
+              By continuing, you agree to ZlipKart's{' '}
               <span className="text-primary-600 cursor-pointer hover:underline">Terms of Use</span> and{' '}
               <span className="text-primary-600 cursor-pointer hover:underline">Privacy Policy</span>.
             </p>
@@ -116,7 +116,7 @@ export default function Login() {
           </form>
 
           <div className="mt-6 text-center">
-            <span className="text-sm text-gray-600">New to Flipkart? </span>
+            <span className="text-sm text-gray-600">New to ZlipKart? </span>
             <Link to="/auth/register" className="text-sm font-medium text-primary-600 hover:underline">
               Create an account
             </Link>

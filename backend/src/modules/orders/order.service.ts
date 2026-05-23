@@ -48,6 +48,7 @@ import {
   findAddressByIdAndUser,
 } from "./order.repository";
 import { Prisma } from "@prisma/client";
+import { sendOrderConfirmationEmail } from "../../services/email/resend.service";
 
 // ─────────────────────────────────────────────────────────────
 // PLACE ORDER (Checkout)
@@ -203,7 +204,38 @@ export const placeOrder = async (userId: string, input: PlaceOrderInput) => {
 
   // Fetch the full order with items and address for the response
   const fullOrder = await findOrderByIdAndUser(order.id, userId);
-  return fullOrder!;
+
+  // ── Send confirmation email (awaited so we know if it succeeded) ──
+  let emailSent = false;
+  if (fullOrder?.address) {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true },
+    });
+
+    if (user?.email) {
+      emailSent = await sendOrderConfirmationEmail({
+        to: user.email,
+        customerName: user.name || "Valued Customer",
+        orderId: order.id,
+        totalAmount: Number(fullOrder.totalAmount),
+        items: fullOrder.items.map((item) => ({
+          name: item.product?.name ?? "Product",
+          quantity: item.quantity,
+          price: Number(item.priceAtPurchase),
+        })),
+        address: {
+          fullName: fullOrder.address.fullName,
+          street: fullOrder.address.street,
+          city: fullOrder.address.city,
+          state: fullOrder.address.state,
+          pincode: fullOrder.address.pincode,
+        },
+      });
+    }
+  }
+
+  return { ...fullOrder!, emailSent };
 };
 
 // ─────────────────────────────────────────────────────────────

@@ -82,7 +82,7 @@ export const createApp = (): Application => {
   // ── 7. Root route (sanity check) ─────────────────────────────
   app.get("/", (_req, res) => {
     res.json({
-      message: "Flipkart Clone API",
+      message: "ZlipKart API",
       docs: `${API.PREFIX}/health`,
       version: env.apiVersion,
     });

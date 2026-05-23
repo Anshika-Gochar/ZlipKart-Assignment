@@ -5,6 +5,7 @@ import { OrderCard } from '../../components/shared/OrderCard';
 import { AppDispatch, RootState } from '../../store';
 import { Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { Order } from '../../types/api.types';
 
 export default function Orders() {
   const dispatch = useDispatch<AppDispatch>();
@@ -62,7 +63,7 @@ export default function Orders() {
         </div>
       ) : (
         <div className="space-y-3">
-          {orders.map((order: import('../../types/api.types').Order) => (
+          {orders.map((order: Order) => (
             <OrderCard key={order.id} order={order} />
           ))}
         </div>

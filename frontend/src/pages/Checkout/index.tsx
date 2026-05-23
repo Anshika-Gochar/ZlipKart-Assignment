@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { fetchAddresses, selectAddress } from '../../store/slices/addressSlice';
@@ -47,12 +47,22 @@ const CheckoutPage: React.FC = () => {
       .unwrap()
       .then(res => {
         toast.success('Order placed successfully! 🎉');
+        // Only show email toast if backend confirmed the email was sent
+        if (res.emailSent) {
+          setTimeout(() => {
+            toast('📧 Order confirmation sent to your email', {
+              duration: 4000,
+              style: { fontSize: '13px', padding: '10px 14px' },
+            });
+          }, 900);
+        }
         navigate('/order-success', { state: { orderId: res.orderId } });
       })
       .catch(err => {
         toast.error(err || 'Failed to place order. Please try again.');
       });
   };
+
 
 
   if (cartLoading || addressLoading) {

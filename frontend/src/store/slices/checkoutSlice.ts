@@ -3,12 +3,11 @@ import { ordersApi } from '../../api/orderApi';
 import { ApiResponse } from '../../types/api.types';
 import { clearCart } from './cartSlice';
 
-// Backend POST /orders returns the full order object:
-// { id, status, paymentStatus, paymentMethod, totalAmount, createdAt, address, items, ... }
-// We extract only what's needed for navigation.
+// Backend POST /orders returns the full order object + emailSent boolean
 type OrderResponse = {
   orderId: string;
   status: string;
+  emailSent: boolean;
 };
 
 export const placeOrder = createAsyncThunk(
@@ -17,14 +16,14 @@ export const placeOrder = createAsyncThunk(
     try {
       const response: ApiResponse<any> = await ordersApi.createOrder(orderData);
       if (response.success && response.data) {
-        // Backend returns full order — extract id as orderId
         const orderId = response.data.id as string;
         const status = (response.data.status as string) || 'PENDING';
+        const emailSent = (response.data.emailSent as boolean) ?? false;
 
         // Clear the cart in Redux state since backend clears it on checkout
         dispatch(clearCart());
 
-        return { orderId, status };
+        return { orderId, status, emailSent };
       }
       return rejectWithValue(response.message || 'Failed to place order');
     } catch (err: any) {

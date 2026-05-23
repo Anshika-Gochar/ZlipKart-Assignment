@@ -73,6 +73,26 @@ export const productListQuerySchema = z.object({
     .optional()
     .transform((v) => (v ? parseFloat(v) : undefined))
     .pipe(z.number().min(0).max(5).optional()),
+
+  // Brand filter — ?brand=Apple filters to that brand (case-insensitive)
+  brand: z
+    .string()
+    .max(100)
+    .optional(),
+
+  // Minimum discount % — ?minDiscount=20 shows 20%+ discounted products
+  minDiscount: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseFloat(v) : undefined))
+    .pipe(z.number().min(0).max(100).optional()),
+
+  // Inline search — ?search=laptop searches name/brand/description
+  // Lets filters + search combine in a single request
+  search: z
+    .string()
+    .max(200)
+    .optional(),
 });
 
 // ── Search query schema ────────────────────────────────────────

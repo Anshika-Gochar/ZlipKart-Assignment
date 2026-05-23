@@ -66,9 +66,12 @@ const AssistantProductCard = ({ product }: { product: Product }) => {
       {/* Thumbnail */}
       <div className="flex-shrink-0 w-14 h-14 bg-gray-50 rounded-sm overflow-hidden flex items-center justify-center border border-gray-100">
         <img
-          src={product.imageUrls[0] || 'https://via.placeholder.com/56x56'}
+          src={product.imageUrls[0]}
           alt={product.name}
           className="max-w-full max-h-full object-contain p-1"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = 'none';
+          }}
         />
       </div>
 

@@ -20,7 +20,7 @@ const router = Router();
 router.get("/", (_req: Request, res: Response) => {
   res.status(StatusCodes.OK).json({
     success: true,
-    message: "Flipkart Clone API is running",
+    message: "ZlipKart API is running",
     environment: env.nodeEnv,
     timestamp: new Date().toISOString(),
     uptime: `${Math.floor(process.uptime())}s`,

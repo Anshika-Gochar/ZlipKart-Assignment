@@ -35,7 +35,7 @@ const Register = () => {
           user: response.data.user,
           token: response.data.accessToken,
         }));
-        toast.success('Account created! Welcome to Flipkart 🎉');
+        toast.success('Account created! Welcome to ZlipKart 🎉');
         navigate('/');
       } else {
         toast.error(response.message || 'Registration failed. Try again.');
@@ -58,7 +58,7 @@ const Register = () => {
         </h2>
         <p className="text-blue-100 text-base leading-relaxed">
           Sign up with your email to get started<br />
-          with Flipkart
+          with ZlipKart
         </p>
       </div>
 
@@ -151,7 +151,7 @@ const Register = () => {
             </div>
 
             <p className="text-xs text-gray-500 leading-relaxed">
-              By continuing, you agree to Flipkart's{' '}
+              By continuing, you agree to ZlipKart's{' '}
               <span className="text-primary-600 cursor-pointer hover:underline">Terms of Use</span> and{' '}
               <span className="text-primary-600 cursor-pointer hover:underline">Privacy Policy</span>.
             </p>

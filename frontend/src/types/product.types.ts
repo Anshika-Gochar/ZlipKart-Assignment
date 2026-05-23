@@ -11,6 +11,9 @@ export interface ProductListQuery {
   maxPrice?: number;
   inStock?: boolean;
   minRating?: number;
+  brand?: string;
+  minDiscount?: number;
+  search?: string;
 }
 
 export interface SearchQuery {

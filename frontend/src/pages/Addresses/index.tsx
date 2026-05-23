@@ -10,7 +10,7 @@ import {
 } from '../../store/slices/addressSlice';
 import { addressSchema, AddressData } from '../../schemas/checkout.schemas';
 import { AppDispatch, RootState } from '../../store';
-import { MapPin, Plus, Pencil, Trash2, Check } from 'lucide-react';
+import { MapPin, Plus, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Addresses() {
@@ -213,7 +213,7 @@ export default function Addresses() {
                 <p className="text-sm text-[#878787]">
                   {addr.street as string}{addr.landmark ? `, ${addr.landmark}` : ''}, {addr.city as string}, {addr.state as string} — {addr.pincode as string}
                 </p>
-                {addr.phone && (
+                {(addr.phone as string) && (
                   <p className="text-sm text-[#212121] mt-1 font-medium">📞 {addr.phone as string}</p>
                 )}
               </div>

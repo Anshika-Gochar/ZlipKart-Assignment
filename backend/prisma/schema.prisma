@@ -25,28 +25,28 @@ enum Role {
 
 /// Tracks lifecycle of an order through fulfillment pipeline
 enum OrderStatus {
-  PENDING      // Order placed, awaiting confirmation
-  CONFIRMED    // Seller confirmed the order
-  PROCESSING   // Being packed / prepared
-  SHIPPED      // Handed to logistics partner
+  PENDING // Order placed, awaiting confirmation
+  CONFIRMED // Seller confirmed the order
+  PROCESSING // Being packed / prepared
+  SHIPPED // Handed to logistics partner
   OUT_FOR_DELIVERY // Last-mile delivery in progress
-  DELIVERED    // Successfully delivered to customer
-  CANCELLED    // Cancelled before shipment
-  RETURNED     // Post-delivery return initiated
-  REFUNDED     // Money returned to customer
+  DELIVERED // Successfully delivered to customer
+  CANCELLED // Cancelled before shipment
+  RETURNED // Post-delivery return initiated
+  REFUNDED // Money returned to customer
 }
 
 /// Tracks payment lifecycle independently of order status
 enum PaymentStatus {
-  UNPAID      // Order placed; payment pending (COD or failed attempt)
-  PAID        // Payment successfully captured
-  FAILED      // Payment attempt failed
-  REFUNDED    // Amount refunded back
+  UNPAID // Order placed; payment pending (COD or failed attempt)
+  PAID // Payment successfully captured
+  FAILED // Payment attempt failed
+  REFUNDED // Amount refunded back
 }
 
 /// Payment method recorded at order time
 enum PaymentMethod {
-  COD         // Cash on Delivery
+  COD // Cash on Delivery
   UPI
   CARD
   NET_BANKING
@@ -62,24 +62,24 @@ enum PaymentMethod {
 // ============================================================
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String                         // bcrypt hash, NEVER plain text
+  id           String  @id @default(uuid())
+  email        String  @unique
+  passwordHash String // bcrypt hash, NEVER plain text
   name         String
-  phone        String?                        // Optional at registration
-  role         Role     @default(USER)
-  isActive     Boolean  @default(true)        // Soft-disable accounts
+  phone        String? // Optional at registration
+  role         Role    @default(USER)
+  isActive     Boolean @default(true) // Soft-disable accounts
 
   // Relations
-  addresses    Address[]
-  cart         Cart?                          // One-to-one: every user has at most one active cart
-  orders       Order[]
-  wishlist     WishlistItem[]
+  addresses Address[]
+  cart      Cart? // One-to-one: every user has at most one active cart
+  orders    Order[]
+  wishlist  WishlistItem[]
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([email])                            // Fast login lookups
+  @@index([email]) // Fast login lookups
   @@map("users")
 }
 
@@ -94,25 +94,25 @@ model User {
 // ============================================================
 
 model Address {
-  id         String  @id @default(uuid())
-  userId     String
-  fullName   String
-  phone      String
-  street     String
-  city       String
-  state      String
-  pincode    String
-  landmark   String?                          // Optional field
-  isDefault  Boolean @default(false)         // One address flagged as default
+  id        String  @id @default(uuid())
+  userId    String
+  fullName  String
+  phone     String
+  street    String
+  city      String
+  state     String
+  pincode   String
+  landmark  String? // Optional field
+  isDefault Boolean @default(false) // One address flagged as default
 
   // Relations
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders     Order[]                          // Orders that used this address
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[] // Orders that used this address
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([userId])                           // List addresses by user fast
+  @@index([userId]) // List addresses by user fast
   @@map("addresses")
 }
 
@@ -130,25 +130,25 @@ model Address {
 // ============================================================
 
 model Category {
-  id          String     @id @default(uuid())
-  name        String     @unique
-  slug        String     @unique                // URL-safe identifier
+  id          String  @id @default(uuid())
+  name        String  @unique
+  slug        String  @unique // URL-safe identifier
   description String?
   imageUrl    String?
 
   // Self-referencing for parent-child hierarchy
-  parentId    String?
-  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryTree")
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
 
   // Relations
-  products    Product[]
+  products Product[]
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([slug])                              // Category page lookups by slug
-  @@index([parentId])                          // Fetch children of a parent fast
+  @@index([slug]) // Category page lookups by slug
+  @@index([parentId]) // Fetch children of a parent fast
   @@map("categories")
 }
 
@@ -166,36 +166,36 @@ model Category {
 // ============================================================
 
 model Product {
-  id             String   @id @default(uuid())
-  name           String
-  slug           String   @unique              // SEO-friendly URL slug
-  description    String
-  brand          String?
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique // SEO-friendly URL slug
+  description String
+  brand       String?
 
   // Pricing
-  price          Decimal  @db.Decimal(10, 2)   // MRP (strike-through price)
-  discountPrice  Decimal  @db.Decimal(10, 2)   // Actual selling price
+  price         Decimal @db.Decimal(10, 2) // MRP (strike-through price)
+  discountPrice Decimal @db.Decimal(10, 2) // Actual selling price
 
   // Inventory
-  stock          Int      @default(0)
-  isActive       Boolean  @default(true)       // Soft-delete / unpublish
+  stock    Int     @default(0)
+  isActive Boolean @default(true) // Soft-delete / unpublish
 
   // Media
-  imageUrls      String[]                      // PostgreSQL text[] — multiple images
+  imageUrls String[] // PostgreSQL text[] — multiple images
 
   // Ratings (denormalized for read performance)
-  rating         Decimal  @default(0) @db.Decimal(3, 2)  // Avg rating 0.00–5.00
-  reviewCount    Int      @default(0)
+  rating      Decimal @default(0) @db.Decimal(3, 2) // Avg rating 0.00–5.00
+  reviewCount Int     @default(0)
 
   // Relations
-  categoryId     String
-  category       Category     @relation(fields: [categoryId], references: [id])
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
-  wishlistItems  WishlistItem[]
+  categoryId    String
+  category      Category       @relation(fields: [categoryId], references: [id])
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  wishlistItems WishlistItem[]
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // ── Indexes ────────────────────────────────────────────────
   // name: full-text product search
@@ -225,12 +225,12 @@ model Product {
 // ============================================================
 
 model Cart {
-  id     String     @id @default(uuid())
-  userId String     @unique                   // Enforces one-cart-per-user at DB level
+  id     String @id @default(uuid())
+  userId String @unique // Enforces one-cart-per-user at DB level
 
   // Relations
-  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items  CartItem[]
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -248,14 +248,14 @@ model Cart {
 // ============================================================
 
 model CartItem {
-  id        String  @id @default(uuid())
+  id        String @id @default(uuid())
   cartId    String
   productId String
-  quantity  Int     @default(1)
+  quantity  Int    @default(1)
 
   // Relations
-  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -287,20 +287,20 @@ model Order {
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
   paymentMethod PaymentMethod @default(COD)
-  totalAmount   Decimal       @db.Decimal(10, 2)  // Calculated at checkout time
-  notes         String?                            // Optional delivery instructions
+  totalAmount   Decimal       @db.Decimal(10, 2) // Calculated at checkout time
+  notes         String? // Optional delivery instructions
 
   // Relations
-  user          User          @relation(fields: [userId], references: [id])
-  address       Address       @relation(fields: [addressId], references: [id])
-  items         OrderItem[]
+  user    User        @relation(fields: [userId], references: [id])
+  address Address     @relation(fields: [addressId], references: [id])
+  items   OrderItem[]
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([userId])                               // Order history by user
-  @@index([status])                               // Admin panel: filter by status
-  @@index([createdAt])                            // Recent orders sorting
+  @@index([userId]) // Order history by user
+  @@index([status]) // Admin panel: filter by status
+  @@index([createdAt]) // Recent orders sorting
   @@map("orders")
 }
 
@@ -324,15 +324,15 @@ model OrderItem {
   orderId         String
   productId       String
   quantity        Int
-  priceAtPurchase Decimal @db.Decimal(10, 2)  // ← SNAPSHOT: price when ordered
+  priceAtPurchase Decimal @db.Decimal(10, 2) // ← SNAPSHOT: price when ordered
 
   // Relations
-  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product         Product @relation(fields: [productId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
   // NOTE: No cascade on product — we want the record even if product is deleted
 
   @@index([orderId])
-  @@index([productId])                           // "How many times was this product ordered?"
+  @@index([productId]) // "How many times was this product ordered?"
   @@map("order_items")
 }
 
@@ -348,15 +348,15 @@ model OrderItem {
 // ============================================================
 
 model WishlistItem {
-  id        String   @id @default(uuid())
+  id        String @id @default(uuid())
   userId    String
   productId String
 
   // Relations
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  addedAt   DateTime @default(now())
+  addedAt DateTime @default(now())
 
   // Prevents the same product appearing twice in a wishlist
   @@unique([userId, productId])

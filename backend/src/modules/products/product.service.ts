@@ -42,6 +42,9 @@ export const getProducts = async (query: ProductListQuery) => {
     maxPrice: query.maxPrice,
     inStock: query.inStock,
     minRating: query.minRating,
+    brand: query.brand,
+    minDiscount: query.minDiscount,
+    search: query.search,
     sortBy: query.sortBy,
     page: query.page,
     limit: query.limit,
@@ -50,6 +53,7 @@ export const getProducts = async (query: ProductListQuery) => {
 
   return { products, total, page: query.page, limit: query.limit };
 };
+
 
 // ── Get single product by ID ──────────────────────────────────
 export const getProductById = async (id: string) => {

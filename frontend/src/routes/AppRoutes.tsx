@@ -16,6 +16,8 @@ import OrderSuccess from '../pages/OrderSuccess';
 import Login from '../pages/Auth/Login';
 import Register from '../pages/Auth/Register';
 import OrderDetail from '../pages/Orders/Detail';
+import SellerPage from '../pages/Seller';
+import NotFound from '../pages/NotFound';
 
 export const AppRoutes = () => {
   return (
@@ -25,14 +27,15 @@ export const AppRoutes = () => {
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/seller" element={<SellerPage />} />
 
-        {/* Auth Routes (Only visible to non-logged in users) */}
+        {/* Auth Routes (Only for non-logged-in users) */}
         <Route element={<PublicRoute />}>
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/register" element={<Register />} />
         </Route>
 
-        {/* Protected Routes (Only visible to logged in users) */}
+        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
@@ -43,6 +46,9 @@ export const AppRoutes = () => {
           <Route path="/addresses" element={<Addresses />} />
           <Route path="/order-success" element={<OrderSuccess />} />
         </Route>
+
+        {/* 404 — must be last */}
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );

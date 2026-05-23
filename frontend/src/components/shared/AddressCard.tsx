@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface AddressCardProps {
   address: Record<string, unknown>;

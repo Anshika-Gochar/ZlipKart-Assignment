@@ -75,20 +75,23 @@ const buildOrderBy = (
   return map[sortBy];
 };
 
-// ── Filter params type ─────────────────────────────────────────
+// ── Filter params type ────────────────────────────────────────────
 export interface ProductFilters {
   categoryId?: string;
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
   minRating?: number;
+  brand?: string;          // NEW: case-insensitive brand filter
+  minDiscount?: number;    // NEW: minimum discount % (0-100)
+  search?: string;         // NEW: inline keyword search
   sortBy?: SortBy;
   page: number;
   limit: number;
   skip: number;
 }
 
-// ── Build Prisma where clause from filters ─────────────────────
+// ── Build Prisma where clause from filters ─────────────────────────
 // Returns a ProductWhereInput — only active products always applied
 const buildWhereClause = (
   filters: Omit<ProductFilters, "sortBy" | "page" | "limit" | "skip">
@@ -119,16 +122,75 @@ const buildWhereClause = (
     where.rating = { gte: new Prisma.Decimal(filters.minRating) };
   }
 
+  // Brand filter — case-insensitive contains match
+  // e.g. "apple" matches "Apple", "Apple Inc"
+  if (filters.brand) {
+    where.brand = { contains: filters.brand, mode: "insensitive" };
+  }
+
+  // Discount filter note:
+  // Prisma doesn't support column-to-column comparisons in WHERE clauses.
+  // discount% = ((price - discountPrice) / price) * 100
+  // We handle this in findProducts() via in-memory post-filter after DB fetch.
+  // This works fine for our small dataset (< 200 products total).
+
+  // Inline keyword search — OR across name, brand, description, category
+  // Combines with all other filters (AND logic between filters, OR within search)
+  if (filters.search && filters.search.trim()) {
+    const q = filters.search.trim();
+    const searchOr: Prisma.ProductWhereInput[] = [
+      { name: { contains: q, mode: "insensitive" } },
+      { brand: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { category: { name: { contains: q, mode: "insensitive" } } },
+    ];
+    // If we already have an OR (shouldn't happen), wrap in AND
+    if (where.OR) {
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : []),
+        { OR: searchOr },
+      ];
+    } else {
+      where.OR = searchOr;
+    }
+  }
+
   return where;
 };
+
 
 // ── Get paginated product list with filters ────────────────────
 export const findProducts = async (filters: ProductFilters) => {
   const where = buildWhereClause(filters);
   const orderBy = buildOrderBy(filters.sortBy);
 
-  // Parallel queries: fetch data and total count simultaneously
-  // This halves DB round-trip time compared to sequential queries
+  // When minDiscount is set we need in-memory filtering because Prisma
+  // cannot compare two columns (price vs discountPrice) in a WHERE clause.
+  // Strategy: fetch a larger pool, filter, then paginate manually.
+  if (filters.minDiscount !== undefined && filters.minDiscount > 0) {
+    const minDiscount = filters.minDiscount;
+    // Fetch all matching products without pagination — dataset is small (<200)
+    const allProducts = await db.product.findMany({
+      where,
+      select: productSelect,
+      orderBy,
+    });
+
+    // In-memory discount filter: ((price - discountPrice) / price) * 100 >= minDiscount
+    const discounted = allProducts.filter((p) => {
+      const price = Number(p.price);
+      const discountPrice = Number(p.discountPrice);
+      if (price <= 0) return false;
+      const discountPct = ((price - discountPrice) / price) * 100;
+      return discountPct >= minDiscount;
+    });
+
+    const total = discounted.length;
+    const products = discounted.slice(filters.skip, filters.skip + filters.limit);
+    return { products, total };
+  }
+
+  // Standard path: parallel count + findMany
   const [products, total] = await Promise.all([
     db.product.findMany({
       where,
@@ -142,6 +204,7 @@ export const findProducts = async (filters: ProductFilters) => {
 
   return { products, total };
 };
+
 
 // ── Get single product by ID ───────────────────────────────────
 export const findProductById = async (id: string) => {

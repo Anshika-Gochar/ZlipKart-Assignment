@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../store';
 import { Heart, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ProductImage } from './ProductImage';
 
 interface CartItemCardProps {
   item: CartItem;
@@ -53,12 +54,13 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onQuantityChange, onR
       {/* Image */}
       <Link
         to={`/products/${product.id}`}
-        className="w-24 h-24 flex-shrink-0 mr-4 flex items-center justify-center bg-gray-50 rounded-sm"
+        className="w-24 h-24 flex-shrink-0 mr-4 rounded-sm overflow-hidden"
       >
-        <img
-          src={product.imageUrls[0] || 'https://via.placeholder.com/100'}
+        <ProductImage
+          src={product.imageUrls[0]}
           alt={product.name}
-          className="max-w-full max-h-full object-contain p-1"
+          containerClassName="w-24 h-24"
+          fit="contain"
         />
       </Link>
 

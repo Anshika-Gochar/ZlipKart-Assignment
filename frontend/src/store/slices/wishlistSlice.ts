@@ -34,7 +34,7 @@ export const fetchWishlist = createAsyncThunk(
 // Backend returns updated wishlist — we re-fetch for simplicity
 export const addToWishlist = createAsyncThunk(
   'wishlist/addToWishlist',
-  async (productId: string, { rejectWithValue, dispatch }) => {
+  async (productId: string, { rejectWithValue }) => {
     try {
       const response = await wishlistApi.addItem(productId);
       if (response.success) {

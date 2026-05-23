@@ -10,9 +10,11 @@ import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { Heart, ShoppingCart, Star, Zap, Truck, ShieldCheck, ArrowLeft, ChevronRight } from 'lucide-react';
+import { Heart, Star, Truck, ShieldCheck, ArrowLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { SimilarProducts } from '../../components/shared/SimilarProducts';
+import { useRecentlyViewed } from '../../hooks/useRecentlyViewed';
+import { ProductImage } from '../../components/shared/ProductImage';
 
 
 export default function ProductDetail() {
@@ -29,6 +31,8 @@ export default function ProductDetail() {
   const [addingToCart, setAddingToCart] = useState(false);
   const [togglingWishlist, setTogglingWishlist] = useState(false);
 
+  const { addToRecentlyViewed } = useRecentlyViewed();
+
   useEffect(() => {
     if (id) {
       dispatch(fetchProductByIdAsync(id));
@@ -37,6 +41,13 @@ export default function ProductDetail() {
       dispatch(clearCurrentProduct());
     };
   }, [id, dispatch]);
+
+  // Track recently viewed when product loads successfully
+  useEffect(() => {
+    if (currentProduct) {
+      addToRecentlyViewed(currentProduct);
+    }
+  }, [currentProduct?.id]); // Only re-run when product ID changes
 
   // Fetch wishlist so isWishlisted is accurate
   useEffect(() => {
@@ -165,10 +176,11 @@ export default function ProductDetail() {
 
               {/* Main Image */}
               <div className="flex-1 relative bg-white flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
-                <img
-                  src={currentProduct.imageUrls[activeImage] || 'https://via.placeholder.com/600x600'}
+                <ProductImage
+                  src={currentProduct.imageUrls[activeImage]}
                   alt={currentProduct.name}
-                  className="max-h-[400px] max-w-full object-contain"
+                  containerClassName="w-full h-[380px] sm:h-[420px]"
+                  fit="contain"
                 />
                 {/* Wishlist Heart */}
                 <button
@@ -207,18 +219,6 @@ export default function ProductDetail() {
                 <span className="text-sm text-[#878787]">
                   {currentProduct.reviewCount.toLocaleString()} Ratings &amp; Reviews
                 </span>
-              </div>
-
-              {/* Price Block */}
-              {/* Features / Delivery */}
-              <div className="py-4 border-y border-gray-100 flex items-start gap-4">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-[#212121] mb-1 flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-primary-600" />
-                    Delivery by {new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  </p>
-                  <p className="text-xs text-[#878787]">Free delivery on orders over ₹500</p>
-                </div>
               </div>
 
               <div className="pt-2">
