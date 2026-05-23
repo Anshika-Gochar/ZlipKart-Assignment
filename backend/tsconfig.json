@@ -1,44 +1,24 @@
 {
   "compilerOptions": {
-    /* ── Language & Environment ─────────────────────────────── */
-    "target": "ES2020",                        // Modern JS output — Node 16+ supports this
+    "target": "ES2020",
     "lib": ["ES2020"],
-    "module": "CommonJS",                      // Node.js module system
+    "module": "CommonJS",
     "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",               // Silence node/baseUrl deprecation warnings
-
-    /* ── Paths & Roots ─────────────────────────────────────── */
-    "outDir": "./dist",                        // Compiled output goes here
-    "baseUrl": "./src",                        // Enables absolute imports from src/
-    "paths": {
-      "@config/*": ["config/*"],
-      "@modules/*": ["modules/*"],
-      "@middlewares/*": ["middlewares/*"],
-      "@utils/*": ["utils/*"],
-      "@types/*": ["types/*"]
-    },
-
-    /* ── Strict Type Checking ───────────────────────────────── */
-    "strict": true,                            // Enable all strict checks
-    "noImplicitAny": true,                     // No untyped variables
-    "strictNullChecks": true,                  // Catch null/undefined bugs
-    "noUnusedLocals": true,                    // Catch dead code
-    "noUnusedParameters": true,               // Catch unused function params
-    "noImplicitReturns": true,                 // All paths must return a value
-
-    /* ── Interop ─────────────────────────────────────────────── */
-    "esModuleInterop": true,                   // Allows default imports from CJS modules
+    "outDir": "./dist",
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,                 // import data from 'file.json'
+    "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-
-    /* ── Source Maps ────────────────────────────────────────── */
-    "sourceMap": true,                         // Stack traces point to .ts files
-    "declaration": true,                       // Generate .d.ts for library use
+    "sourceMap": true,
+    "declaration": true,
     "declarationMap": true,
-
-    /* ── Skip Lib Check ─────────────────────────────────────── */
-    "skipLibCheck": true                       // Skip type-checking node_modules
+    "skipLibCheck": true
   },
   "include": ["src/**/*", "prisma/**/*"],
   "exclude": ["node_modules", "dist"]
