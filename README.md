@@ -109,11 +109,11 @@ The project intentionally mirrors Flipkart's UI/UX and information density while
 
 | Technology | Version | Purpose |
 |---|---|---|
-| **Node.js** | 20 | JavaScript runtime |
+| **Node.js** | 23+ | JavaScript runtime |
 | **Express.js** | 4 | HTTP server and routing |
 | **TypeScript** | 5 | Full type safety across the API layer |
 | **Prisma ORM** | 5 | Type-safe database access with migration support |
-| **PostgreSQL** | 16 | Relational database for all persistent data |
+| **PostgreSQL** | 18 | Relational database for all persistent data |
 | **JSON Web Tokens** | — | Stateless authentication |
 | **Zod** | 3 | Request body validation on every endpoint |
 | **Resend** | — | Transactional email API for order confirmations |
@@ -269,8 +269,9 @@ For evaluation convenience, the database seed creates a demo user:
 > ⚠️ Replace with actual credentials from your seeded database before submission.
 
 ```
-Email:    demo@zlipkart.com
-Password: Demo@123
+Username : TestUser
+Email:    test12@gmail.com
+Password: Test@123456
 ```
 
 To create a fresh account, use the `/auth/register` page.
